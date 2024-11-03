@@ -1,18 +1,17 @@
-import { useEffect, useState } from 'react'
 import { FormControl, IconButton, InputAdornment, InputLabel, OutlinedInput } from '@mui/material'
 import Visibility from '@mui/icons-material/Visibility'
 import VisibilityOff from '@mui/icons-material/VisibilityOff'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faLock } from '@fortawesome/free-solid-svg-icons'
 
-import { useToggle } from '~/hooks/useToggle'
+import { useToggle } from '~/hooks'
 import { TextFieldIndicator } from '~/components/Indicator'
 import { colors } from '~/styles'
 
 interface PasswordTextFieldProps {
   value: string
   indicator: string
-  onChange: (value: string, indicator: string) => void
+  onChange: (value: string) => void
   label?: string
   placeholder?: string
 }
@@ -25,32 +24,13 @@ export function PasswordTextField({
   placeholder = 'Enter password here'
 }: PasswordTextFieldProps) {
   const { value: showPassword, toggle: toggleShowPassword } = useToggle(false)
-  const [localValue, setLocalValue] = useState(value)
-  const [localIndicator, setLocalIndicator] = useState(indicator)
-
-  const handleTextFieldChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const value = event.target.value
-    setLocalValue(value)
-
-    let newIndicator = ''
-    if (value === '') {
-      newIndicator = 'Required'
-    }
-    setLocalIndicator(newIndicator)
-    onChange(value, newIndicator)
-  }
-
-  useEffect(() => {
-    setLocalValue(value)
-    setLocalIndicator(indicator)
-  }, [value, indicator])
 
   return (
     <div className='w-full flex flex-col items-start gap-1'>
       <FormControl sx={{ width: '100%' }} variant='outlined'>
         <InputLabel
           htmlFor={`outlined-adornment-${label}`}
-          sx={{ color: localIndicator === '' ? colors.text_primary : '#f00' }}
+          sx={{ color: indicator === '' ? colors.text_primary : '#f00' }}
         >
           {label}
         </InputLabel>
@@ -70,7 +50,7 @@ export function PasswordTextField({
               paddingLeft: '2px'
             },
             '& fieldset': {
-              borderColor: localIndicator === '' ? colors.border : '#f00'
+              borderColor: indicator === '' ? colors.border : '#f00'
             }
           }}
           startAdornment={
@@ -96,11 +76,11 @@ export function PasswordTextField({
               </IconButton>
             </InputAdornment>
           }
-          value={localValue}
-          onChange={handleTextFieldChange}
+          value={value}
+          onChange={(e) => onChange(e.target.value)}
         />
       </FormControl>
-      <TextFieldIndicator indicator={localIndicator} />
+      <TextFieldIndicator indicator={indicator} />
     </div>
   )
 }

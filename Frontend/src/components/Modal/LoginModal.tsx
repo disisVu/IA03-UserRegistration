@@ -2,33 +2,21 @@ import { Box } from '@mui/material'
 import { PrimaryModal } from '~/components/Modal/ModalLayouts'
 import { colors } from '~/styles'
 import { EmailTextField, PasswordTextField } from '~/components/TextField'
-import { ButtonPrimary } from '../Button/FullWidth'
-import { useState } from 'react'
+import { ButtonPrimary } from '~/components/Button/FullWidth'
 import { useNavigate } from 'react-router-dom'
+import { useEmailTextField, usePasswordTextField } from '~/hooks'
 
 export function LoginModal() {
   const navigate = useNavigate()
-  const [email, setEmail] = useState<string>('')
-  const [emailIndicator, setEmailIndicator] = useState<string>('')
-  const [password, setPassword] = useState<string>('')
-  const [passwordIndicator, setPasswordIndicator] = useState<string>('')
-
-  const handleEmailChange = (value: string, indicator: string) => {
-    setEmail(value)
-    setEmailIndicator(indicator)
-  }
-
-  const handlePasswordChange = (value: string, indicator: string) => {
-    setPassword(value)
-    setPasswordIndicator(indicator)
-  }
+  const { email, emailIndicator, handleEmailChange } = useEmailTextField()
+  const { password, passwordIndicator, handlePasswordChange } = usePasswordTextField()
 
   const handleLogin = () => {
     if (emailIndicator === '' && passwordIndicator === '') {
       // Handle first submit attempt
       if (email === '' || password === '') {
-        setEmailIndicator('Required')
-        setPasswordIndicator('Required')
+        handleEmailChange(email)
+        handlePasswordChange(password)
       }
       // Proceed with login if both fields are valid
       console.log('Logging in with:', { email, password })

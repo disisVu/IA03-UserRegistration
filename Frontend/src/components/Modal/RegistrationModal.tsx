@@ -1,4 +1,3 @@
-import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Box } from '@mui/material'
 
@@ -6,51 +5,29 @@ import { PasswordComplexityBar } from '~/components/Bar'
 import { ButtonPrimary } from '~/components/Button/FullWidth'
 import { PrimaryModal } from '~/components/Modal/ModalLayouts'
 import { EmailTextField, PasswordTextField } from '~/components/TextField'
-import { computePasswordComplexity } from '~/utils'
 import { colors } from '~/styles'
+import { useEmailTextField, usePasswordRegistrationTextField } from '~/hooks'
 
 export function RegistrationModal() {
   const navigate = useNavigate()
-  const [email, setEmail] = useState<string>('')
-  const [emailIndicator, setEmailIndicator] = useState<string>('')
-  const [password, setPassword] = useState<string>('')
-  const [passwordIndicator, setPasswordIndicator] = useState<string>('')
-  const [passwordComplexity, setPasswordComplexity] = useState<number>(0)
-  const [confirmPassword, setConfirmPassword] = useState<string>('')
-  const [confirmPasswordIndicator, setConfirmPasswordIndicator] = useState<string>('')
-
-  const handleEmailChange = (value: string, indicator: string) => {
-    setEmail(value)
-    setEmailIndicator(indicator)
-  }
-
-  const handlePasswordChange = (value: string, indicator: string) => {
-    setPassword(value)
-    if (value !== confirmPassword) {
-      setConfirmPasswordIndicator('Unmatched')
-    } else {
-      setConfirmPasswordIndicator('')
-    }
-    setPasswordIndicator(indicator)
-    const complexity = computePasswordComplexity(value)
-    setPasswordComplexity(complexity)
-  }
-
-  const handleConfirmPasswordChange = (value: string, indicator: string) => {
-    setConfirmPassword(value)
-    if (value !== password) {
-      setConfirmPasswordIndicator('Unmatched')
-    } else {
-      setConfirmPasswordIndicator(indicator)
-    }
-  }
+  const { email, emailIndicator, handleEmailChange } = useEmailTextField()
+  const {
+    password,
+    passwordComplexity,
+    passwordIndicator,
+    handlePasswordChange,
+    confirmPassword,
+    confirmPasswordIndicator,
+    handleConfirmPasswordChange
+  } = usePasswordRegistrationTextField()
 
   const handleRegister = () => {
-    if (emailIndicator === '' && passwordIndicator === '') {
+    if (emailIndicator === '' && passwordIndicator === '' && confirmPasswordIndicator === '') {
       // Handle first submit attempt
-      if (email === '' || password === '') {
-        setEmailIndicator('Required')
-        setPasswordIndicator('Required')
+      if (email === '' || password === '' || confirmPassword === '') {
+        handleEmailChange(email)
+        handlePasswordChange(password)
+        handleConfirmPasswordChange(confirmPassword)
       }
       // Proceed with login if both fields are valid
       console.log('Logging in with:', { email, password })
