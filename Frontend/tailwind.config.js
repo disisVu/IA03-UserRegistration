@@ -6,6 +6,9 @@ module.exports = {
   ],
   theme: {
     extend: {
+      fontFamily: {
+        roboto: ['Roboto', 'sans-serif'], // Add Roboto font
+      },
       screens: {
         // Custom breakpoints
         'sm': '640px',
