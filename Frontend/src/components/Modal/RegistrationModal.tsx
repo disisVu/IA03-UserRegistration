@@ -8,7 +8,7 @@ import { EmailTextField, PasswordTextField } from '~/components/TextField'
 import { colors } from '~/styles'
 import { useEmailTextField, usePasswordRegistrationTextField } from '~/hooks'
 import { useState } from 'react'
-import { registerUser } from '~/api/users.api'
+import { registerUser } from '~/api/userApi'
 
 export function RegistrationModal() {
   const navigate = useNavigate()

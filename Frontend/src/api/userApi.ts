@@ -29,7 +29,7 @@ export const loginUser = async (email: string, password: string) => {
     if (axios.isAxiosError(error) && error.response) {
       // Handle unauthorized (invalid credentials) response
       if (error.response.status === 401) {
-        return { success: false, message: 'Invalid credentials' }
+        return { success: false, message: `Email doesn't exist or password is wrong` }
       }
     }
     return { success: false, message: 'Login failed' }

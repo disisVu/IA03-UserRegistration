@@ -1,4 +1,9 @@
-import { ConflictException, Injectable, HttpStatus } from '@nestjs/common';
+import {
+  ConflictException,
+  Injectable,
+  HttpStatus,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import * as bcrypt from 'bcrypt';
@@ -19,6 +24,9 @@ export class UsersService {
     if (existingUser) {
       throw new ConflictException('Email already in use');
     }
+    if (registerDto.password.length < 8) {
+      throw new UnauthorizedException('Password is too short');
+    }
 
     const saltRounds = parseInt(process.env.SALT_ROUNDS, 10);
     const hashedPassword = await bcrypt.hash(registerDto.password, saltRounds);
@@ -36,14 +44,19 @@ export class UsersService {
     loginDto: LoginDto,
   ): Promise<{ message: string; status: number }> {
     const user = await this.userModel.findOne({ email: loginDto.email });
-    if (user && (await bcrypt.compare(loginDto.password, user.password))) {
-      // Successful login, optionally generate a JWT token here
-      return { message: 'Login successful', status: HttpStatus.OK };
-    } else {
-      return {
-        message: 'Invalid credentials',
-        status: HttpStatus.UNAUTHORIZED,
-      };
+    // Handle user not found
+    if (!user) {
+      throw new UnauthorizedException('Email not registered');
     }
+    const isPasswordValid = await bcrypt.compare(
+      loginDto.password,
+      user.password,
+    );
+    // Handle wrong password
+    if (!isPasswordValid) {
+      throw new UnauthorizedException('Wrong password');
+    }
+    // Successful login, optionally generate a JWT token here
+    return { message: 'Login successful', status: HttpStatus.OK };
   }
 }

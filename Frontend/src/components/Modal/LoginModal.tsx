@@ -6,9 +6,12 @@ import { ButtonPrimary } from '~/components/Button/FullWidth'
 import { useNavigate } from 'react-router-dom'
 import { useEmailTextField, usePasswordTextField } from '~/hooks'
 import { useState } from 'react'
-import { loginUser } from '~/api/users.api'
+import { loginUser } from '~/api/userApi'
+import { useDispatch } from 'react-redux'
+import { saveAuthentication } from '~/redux/authenticationSlice'
 
 export function LoginModal() {
+  const dispatch = useDispatch()
   const navigate = useNavigate()
   const { email, emailIndicator, handleEmailChange } = useEmailTextField()
   const { password, passwordIndicator, handlePasswordChange } = usePasswordTextField()
@@ -37,8 +40,15 @@ export function LoginModal() {
 
     try {
       const result = await loginUser(email, password)
+      console.log(result)
       if (result.success) {
         setStatusMessage('Login successful')
+        dispatch(
+          saveAuthentication({
+            email,
+            password: ''
+          })
+        )
         // Delay for 2 seconds before navigating
         setTimeout(() => {
           navigateToHomePage()
@@ -54,7 +64,7 @@ export function LoginModal() {
   }
 
   const navigateToHomePage = () => {
-    navigate('')
+    navigate('/')
   }
 
   const navigateToRegistration = () => {
