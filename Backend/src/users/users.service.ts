@@ -1,15 +1,17 @@
-import { ConflictException, Injectable } from '@nestjs/common';
+import { ConflictException, Injectable, HttpStatus } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import * as bcrypt from 'bcrypt';
-import { RegisterDto, LoginDto } from './dto';
+import { RegisterDto, LoginDto } from '~/Users/dto';
 import { User, UserDocument } from '~/users/schemas/user.schema';
 
 @Injectable()
 export class UsersService {
   constructor(@InjectModel(User.name) private userModel: Model<UserDocument>) {}
 
-  async register(registerDto: RegisterDto): Promise<any> {
+  async register(
+    registerDto: RegisterDto,
+  ): Promise<{ message: string; status: number }> {
     // Check if email is already used
     const existingUser = await this.userModel.findOne({
       email: registerDto.email,
@@ -26,16 +28,22 @@ export class UsersService {
       password: hashedPassword,
     });
 
-    return user.save();
+    await user.save();
+    return { message: 'Registration successful', status: HttpStatus.CREATED };
   }
 
-  async login(loginDto: LoginDto): Promise<any> {
+  async login(
+    loginDto: LoginDto,
+  ): Promise<{ message: string; status: number }> {
     const user = await this.userModel.findOne({ email: loginDto.email });
     if (user && (await bcrypt.compare(loginDto.password, user.password))) {
-      // Successful login, generate JWT token here if needed
-      return { message: 'Login successful' };
+      // Successful login, optionally generate a JWT token here
+      return { message: 'Login successful', status: HttpStatus.OK };
     } else {
-      return { message: 'Invalid credentials' };
+      return {
+        message: 'Invalid credentials',
+        status: HttpStatus.UNAUTHORIZED,
+      };
     }
   }
 }

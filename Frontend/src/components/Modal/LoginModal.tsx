@@ -5,27 +5,59 @@ import { EmailTextField, PasswordTextField } from '~/components/TextField'
 import { ButtonPrimary } from '~/components/Button/FullWidth'
 import { useNavigate } from 'react-router-dom'
 import { useEmailTextField, usePasswordTextField } from '~/hooks'
+import { useState } from 'react'
+import { loginUser } from '~/api/users.api'
 
 export function LoginModal() {
   const navigate = useNavigate()
   const { email, emailIndicator, handleEmailChange } = useEmailTextField()
   const { password, passwordIndicator, handlePasswordChange } = usePasswordTextField()
+  const [isLoading, setIsLoading] = useState<boolean>(false)
+  const [statusMessage, setStatusMessage] = useState<string>('')
 
-  const handleLogin = () => {
+  const handleLoginRender = () => {
     if (emailIndicator === '' && passwordIndicator === '') {
       // Handle first submit attempt
       if (email === '' || password === '') {
         handleEmailChange(email)
         handlePasswordChange(password)
+        setStatusMessage('Please enter both fields correctly')
+      } else {
+        // Proceed with login
+        handleLogin()
       }
-      // Proceed with login if both fields are valid
-      console.log('Logging in with:', { email, password })
     } else {
       console.log('Please fill out the form correctly.')
     }
   }
 
-  const handleNavigateToRegistration = () => {
+  const handleLogin = async () => {
+    setIsLoading(true)
+    setStatusMessage('')
+
+    try {
+      const result = await loginUser(email, password)
+      if (result.success) {
+        setStatusMessage('Login successful')
+        // Delay for 2 seconds before navigating
+        setTimeout(() => {
+          navigateToHomePage()
+        }, 2000)
+      } else {
+        setStatusMessage(result.message || 'Login failed')
+      }
+    } catch {
+      setStatusMessage('An error occurred during registration')
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
+  const navigateToHomePage = () => {
+    navigate('')
+  }
+
+  const navigateToRegistration = () => {
     navigate('/user/registration')
   }
 
@@ -45,12 +77,16 @@ export function LoginModal() {
           <PasswordTextField value={password} indicator={passwordIndicator} onChange={handlePasswordChange} />
         </Box>
         <Box className='w-full flex flex-col items-center'>
+          <span style={{ color: '#f00' }} className='mb-2 text-sm font-medium'>
+            {statusMessage}
+          </span>
           <ButtonPrimary
             enabled={true}
             text='Confirm'
             onClick={() => {
-              handleLogin()
+              handleLoginRender()
             }}
+            isLoading={isLoading}
           />
           <Box className='text-sm flex flex-row gap-2'>
             <span style={{ color: colors.text_secondary }}>Don't have an account?</span>
@@ -58,7 +94,7 @@ export function LoginModal() {
               style={{ color: colors.primary }}
               className='font-medium cursor-pointer'
               onClick={() => {
-                handleNavigateToRegistration()
+                navigateToRegistration()
               }}
             >
               Sign up

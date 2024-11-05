@@ -7,6 +7,8 @@ import { PrimaryModal } from '~/components/Modal/ModalLayouts'
 import { EmailTextField, PasswordTextField } from '~/components/TextField'
 import { colors } from '~/styles'
 import { useEmailTextField, usePasswordRegistrationTextField } from '~/hooks'
+import { useState } from 'react'
+import { registerUser } from '~/api/users.api'
 
 export function RegistrationModal() {
   const navigate = useNavigate()
@@ -20,8 +22,10 @@ export function RegistrationModal() {
     confirmPasswordIndicator,
     handleConfirmPasswordChange
   } = usePasswordRegistrationTextField()
+  const [isLoading, setIsLoading] = useState<boolean>(false)
+  const [statusMessage, setStatusMessage] = useState<string>('')
 
-  const handleRegister = () => {
+  const handleRegisterRender = () => {
     if (emailIndicator === '' && passwordIndicator === '' && confirmPasswordIndicator === '') {
       // Handle first submit attempt
       if (email === '' || password === '' || confirmPassword === '') {
@@ -29,14 +33,40 @@ export function RegistrationModal() {
         handlePasswordChange(password)
         handleConfirmPasswordChange(confirmPassword)
       }
-      // Proceed with login if both fields are valid
-      console.log('Logging in with:', { email, password })
+      // Proceed with registration
+      if (passwordComplexity > 0) {
+        handleRegister()
+      } else {
+        setStatusMessage('Registration failed. Missing email or password is too weak')
+      }
     } else {
       console.log('Please fill out the form correctly.')
     }
   }
 
-  const handleNavigateToLogin = () => {
+  const handleRegister = async () => {
+    setIsLoading(true)
+    setStatusMessage('')
+
+    try {
+      const result = await registerUser(email, password)
+      if (result.success) {
+        setStatusMessage('Register successful')
+        // Delay for 2 seconds before navigating
+        setTimeout(() => {
+          navigateToLogin()
+        }, 2000)
+      } else {
+        setStatusMessage(result.message || 'Register failed')
+      }
+    } catch {
+      setStatusMessage('An error occurred during registration')
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
+  const navigateToLogin = () => {
     navigate('/user/login')
   }
 
@@ -69,12 +99,16 @@ export function RegistrationModal() {
           />
         </Box>
         <Box className='w-full flex flex-col items-center'>
+          <span style={{ color: '#f00' }} className='mb-2 text-sm font-medium'>
+            {statusMessage}
+          </span>
           <ButtonPrimary
             enabled={true}
             text='Confirm'
             onClick={() => {
-              handleRegister()
+              handleRegisterRender()
             }}
+            isLoading={isLoading}
           />
           <Box className='text-sm flex flex-row gap-2'>
             <span style={{ color: colors.text_secondary }}>Already have an account?</span>
@@ -82,7 +116,7 @@ export function RegistrationModal() {
               style={{ color: colors.primary }}
               className='font-medium cursor-pointer'
               onClick={() => {
-                handleNavigateToLogin()
+                navigateToLogin()
               }}
             >
               Sign in
